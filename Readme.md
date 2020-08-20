@@ -1,8 +1,8 @@
 # Pasta
 
-Simple tool, really.
-Wanted a count of the lines of code in our codebase.
-excluding snapshot files of course, so I wrote this.
+Simple tool, really.<br/>
+Wanted a count of the lines of code in our codebase.<br/>
+excluding snapshot files of course, so I wrote this.<br/>
 
 # How to run
 
