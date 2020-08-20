@@ -11,13 +11,13 @@ import (
 	"github.com/gwuah/pasta/lib"
 )
 
-type FileConfig struct {
+type Repository struct {
 	files   []string
 	stream  chan int
 	counter int
 }
 
-func processFiles(container *FileConfig) func() {
+func processFiles(container *Repository) func() {
 	return func() {
 		for _, file := range container.files {
 			go lib.GetLocStats(file, container.stream)
@@ -25,7 +25,7 @@ func processFiles(container *FileConfig) func() {
 	}
 }
 
-func aggregateDataFromStream(config *FileConfig, wg *sync.WaitGroup) {
+func aggregateDataFromStream(config *Repository, wg *sync.WaitGroup) {
 	for i := 0; i < len(config.files); i++ {
 		config.counter += <-config.stream
 	}
@@ -68,7 +68,7 @@ func main() {
 	var start = time.Now()
 	var wg sync.WaitGroup
 
-	configs := []*FileConfig{
+	configs := []*Repository{
 		{files: components, stream: make(chan int)},
 		{files: tests, stream: make(chan int)},
 		{files: snapshots, stream: make(chan int)},
