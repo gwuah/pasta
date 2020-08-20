@@ -5,19 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gwuah/pasta/lib"
 )
 
-func processFile(path string) bool {
-	return true
-}
-
 func main() {
-	fmt.Println("[PASTA]")
-
-	// find all files in repo
-	// find all test files (.spec.tsx)
-	// filter out actual typescript files (.tsx)
-	// filter all snapshot files (.spec.tsx.snap)
 
 	var files []string
 	var components []string
@@ -53,12 +45,17 @@ func main() {
 		panic(err)
 	}
 
-	// fmt.Println(testFiles)
-	// fmt.Println(components)
-	// fmt.Println(snapshots)
+	var countStream = make(chan int)
 
 	for _, file := range components {
-		fmt.Println(file)
+		go lib.ProcessFile(file, countStream)
 	}
+
+	var count = 0
+	for i := 0; i < len(components); i++ {
+		count += <-countStream
+	}
+
+	fmt.Println(count)
 
 }
