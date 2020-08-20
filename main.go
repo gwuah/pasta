@@ -5,15 +5,37 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gwuah/pasta/lib"
 )
 
+type FileConfig struct {
+	files   []string
+	stream  chan int
+	counter int
+}
+
+func processFiles(container *FileConfig) func() {
+	return func() {
+		for _, file := range container.files {
+			go lib.GetLocStats(file, container.stream)
+		}
+	}
+}
+
+func aggregateDataFromStream(config *FileConfig, wg *sync.WaitGroup) {
+	for i := 0; i < len(config.files); i++ {
+		config.counter += <-config.stream
+	}
+	wg.Done()
+}
+
 func main() {
 
-	var files []string
 	var components []string
-	var testFiles []string
+	var tests []string
 	var snapshots []string
 	var blackList = map[string]bool{
 		"/Users/user/Desktop/work/petra/web/src/setupTests.js":      true,
@@ -29,13 +51,11 @@ func main() {
 		}
 
 		if strings.HasSuffix(path, ".spec.tsx") {
-			testFiles = append(testFiles, path)
+			tests = append(tests, path)
 		} else if strings.HasSuffix(path, ".spec.tsx.snap") {
 			snapshots = append(snapshots, path)
 		} else if strings.HasSuffix(path, ".tsx") || strings.HasSuffix(path, ".ts") {
 			components = append(components, path)
-		} else {
-			files = append(files, path)
 		}
 
 		return nil
@@ -45,17 +65,34 @@ func main() {
 		panic(err)
 	}
 
-	var countStream = make(chan int)
+	var start = time.Now()
+	var wg sync.WaitGroup
 
-	for _, file := range components {
-		go lib.ProcessFile(file, countStream)
+	configs := []*FileConfig{
+		{files: components, stream: make(chan int)},
+		{files: tests, stream: make(chan int)},
+		{files: snapshots, stream: make(chan int)},
 	}
 
-	var count = 0
-	for i := 0; i < len(components); i++ {
-		count += <-countStream
+	for _, config := range configs {
+		go processFiles(config)()
 	}
 
-	fmt.Println(count)
+	for _, config := range configs {
+		wg.Add(1)
+		go aggregateDataFromStream(config, &wg)
+	}
+
+	wg.Wait()
+
+	var elapsed = time.Since(start)
+	var totalNumberOfFiles = len(components) + len(tests) + len(snapshots)
+
+	fmt.Println("\nPasta la vista 🍝")
+
+	fmt.Printf("Processed %d files under %s\n\n", totalNumberOfFiles, elapsed)
+	fmt.Printf("Components :=> %d lines of code.\n", configs[0].counter)
+	fmt.Printf("Tests :=> %d lines of code.\n", configs[1].counter)
+	fmt.Printf("Snapshots :=> %d lines of code.\n", configs[2].counter)
 
 }

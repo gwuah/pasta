@@ -24,8 +24,9 @@ func LineCounter(r io.Reader) (int, error) {
 	}
 }
 
-func ProcessFile(path string, countStream chan<- int) {
+func GetLocStats(path string, countStream chan<- int) {
 	file, err := os.Open(path)
+	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
