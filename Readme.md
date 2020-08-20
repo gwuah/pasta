@@ -9,4 +9,10 @@ Excluding snapshot files of course, so I wrote this.<br/>
 Maybe when i get time, i'll convert it to a cli tool.
 But for now i've created an alias for it.
 
-- `go run main.go`
+- `go build main.go`
+- `./main`
+
+# Preview
+
+
+![Preview](i.imgur.com/nGl5D83.png)
