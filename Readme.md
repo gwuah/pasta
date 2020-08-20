@@ -15,4 +15,4 @@ But for now i've created an alias for it.
 # Preview
 
 
-![Preview](i.imgur.com/nGl5D83.png)
+![Preview](https://i.imgur.com/nGl5D83.png)
